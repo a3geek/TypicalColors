@@ -11,13 +11,13 @@ namespace TypicalColors
 
     public static class TypicalColorsPicker
     {
-        public static Color[] PickUp(Texture2D texture, int clusterCount, int iteration = 10, float scaleUp = 1f)
+        public static TypicalColor[] PickUp(Texture2D texture, int clusterCount, int iteration = 10, float scaleUp = 1f)
             => PickUp(texture.GetPixels(), clusterCount, iteration, scaleUp);
 
-        public static Color[] PickUp(RenderTexture texture, int clusterCount, int iteration = 10, float scaleUp = 1f)
+        public static TypicalColor[] PickUp(RenderTexture texture, int clusterCount, int iteration = 10, float scaleUp = 1f)
             => PickUp(GetColors(texture), clusterCount, iteration, scaleUp);
 
-        public static Color[] PickUp(Color[] colors, int clusterCount, int iteration = 10, float scaleUp = 1f)
+        public static TypicalColor[] PickUp(Color[] colors, int clusterCount, int iteration = 10, float scaleUp = 1f)
         {
             var hsv = colors.Select(c =>
             {
@@ -27,12 +27,14 @@ namespace TypicalColors
             });
 
             List<IReadOnlyCluster> centroids;
-            KmeansPlusPlus.Calculate(hsv.ToList(), clusterCount, iteration, out centroids);
+            var clusters = KmeansPlusPlus.Calculate(hsv.ToList(), clusterCount, iteration, out centroids);
 
             var rate = 1f / scaleUp;
-            return centroids.Select(c => Color.HSVToRGB(
-                c.Point.x * rate, c.Point.y * rate, c.Point.z * rate)
-            ).ToArray();
+            return centroids.Select((c, idx) =>
+            {
+                var rgb = Color.HSVToRGB(c.Point.x * rate, c.Point.y * rate, c.Point.z * rate);
+                return new TypicalColor(rgb, (float)clusters.Count(cluster => cluster.ClusterId == idx) / clusters.Count);
+            }).ToArray();
         }
 
         public static Color[] GetColors(RenderTexture texture)

@@ -48,7 +48,9 @@ namespace TypicalColors.Examples.Classes
             var clusterCount = this.clusterCount;
             var iteration = this.iteration;
             var scaleUp = this.scaleUp;
-            var result = await Task.Run(() => TypicalColorsPicker.PickUp(colors, clusterCount, iteration, scaleUp));
+            var result = await Task.Run(() =>
+                TypicalColorsPicker.PickUp(colors, clusterCount, iteration, scaleUp).Select(e => e.Color).ToArray()
+            );
 
             this.typicalColors = result;
             this.State = RunnerState.Finish;
